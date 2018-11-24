@@ -30,6 +30,10 @@ The main steps are as follows.
 9) Do this for all the faces till any points are left.
 
 # Usage
-Use **gcc chull.cpp utils.cpp -o main** to generate the output binary as main. Then execute 
-    **./ main** 
-    Filename has been assumed to be CONVEX.IN and CONVEX.out for now.
+ - **gcc chull.cpp utils.cpp -o main** to generate the output binary as main.
+ - **./ main** to execute the binary.Filename has been assumed to be CONVEX.IN and CONVEX.out for now.
+    
+# References
+ - http://box2d.org/files/GDC2014/DirkGregorius_ImplementingQuickHull.pdf
+ - https://cw.fel.cvut.cz/wiki/_media/misc/projects/oppa_oi_english/courses/ae4m39vg/lectures/05-convexhull-3d.pdf
+ - https://en.wikipedia.org/wiki/Quickhull
