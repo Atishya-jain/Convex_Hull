@@ -1,6 +1,5 @@
 /* 
 References: https://cw.fel.cvut.cz/wiki/_media/misc/projects/oppa_oi_english/courses/ae4m39vg/lectures/05-convexhull-3d.pdf
-
 */
 
 #include <iostream>
@@ -152,7 +151,6 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 	// chk_list is the global list of points in which I maintain what all points are left to be considered for convex hull
 	// face list is list of points nearest to a face
 	vector<pair<float, pair<float, float>>> chk_list;
-	// vector<int> chk_ind_list;
 	vector<float> dist_list;
 	vector<vector<pair<float, pair<float, float>>>> face_list;
 	for(int i = 0; i<v_inp.size(); i++){
@@ -179,10 +177,7 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 	}
 
 	for(int i = 0; i<v_inp.size(); i++){
-		// if(dist_list[i] < max_lim-10){
-			chk_list.push_back(v_inp[i]);
-			// chk_ind_list.push_back();			
-		// }
+		chk_list.push_back(v_inp[i]);
 	}
 
 	// Send this to a recursion
@@ -244,27 +239,15 @@ void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<
 
 	sort(visible_faces.begin(), visible_faces.end());
 	// Removing visible faces from the poly hedron as they will no longer be a part of convex hull
-	// cout << "yo: " << poly.size() << endl;
-	int count = 0;
-	// set <pair<float, pair<float, float>>> my_chk_list;
 	for(int i = 0; i<visible_faces.size(); i++){
-		count++;
 		poly[visible_faces[i]].clear();
 	}
-	// cout << count << endl;
-	// cout << "yo1: " << poly.size() << endl;
 
 	for(int i = poly.size()-1; i>=0; i--){
-		
 		if(poly[i].size() == 0){
 			poly.erase(poly.begin() + i);	
-			// i--;
 		}
 	}
-	// for(int i = 0; i<poly.size(); i++){
-	// 	cout << poly[i].size() << endl;
-	// }
-	// cout << "yo2: " << poly.size() << endl;
 
 	// adding new faces to polyhedron
 	vector<vector<pair<float, pair<float, float>>>> new_poly;	
@@ -295,14 +278,6 @@ void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<
 		}
 	}
 
-	// vector<pair<float, pair<float, float>>> new_chk_list;
-	// for(int i = 0; i<chk_list.size(); i++){
-	// 	if(dist_list[i] < max_lim-10){
-	// 		new_chk_list.push_back(chk_list[i]);
-	// 	}
-	// }
-	// chk_list = new_chk_list;
-
 	// Send this to a recursion
 	for(int i = 0; i<new_poly.size(); i++){
 		if(face_list[init_size + i].size() > 0){
@@ -328,10 +303,7 @@ bool opp_side(vector<pair<float, pair<float, float>>>& poly, pair<float, pair<fl
 }
 
 bool same_point(pair<float, pair<float, float>> &pt1, pair<float, pair<float, float>> &pt2){	
-	// cout << "hi2\n";
-	// cout << pt2.first  << endl;
 	if(pt1.first > pt2.first-0.00000001 && pt1.first < pt2.first+0.00000001){		
-	// cout << "hi3\n";
 		if(pt1.second.first > pt2.second.first-0.00000001 && pt1.second.first < pt2.second.first+0.00000001){
 			if(pt1.second.second > pt2.second.second-0.00000001 && pt1.second.second < pt2.second.second+0.00000001){
 				return true;
@@ -344,7 +316,6 @@ bool same_point(pair<float, pair<float, float>> &pt1, pair<float, pair<float, fl
 	}else{		
 		return false;
 	}
-	// cout << "hi4\n";
 }
 
 bool same_face(vector<pair<float, pair<float, float>>>& poly, vector<pair<float, pair<float, float>>>& face){
@@ -417,13 +388,7 @@ int get_horizon(int ind, vector <int> &visible_faces, vector<pair<pair<float, pa
 			vector<pair<float, pair<float, float>>> neigh;
 			int index = get_neighbour(i, ind, poly, face, neigh);			
 			bool in_visited = false;
-			//cout << index << endl;
 			for(int j = 0; j<visible_faces.size(); j++){
-	// cout << "hi1\n";
-	// cout << poly.size() << " " << poly[visible_faces[j]][0].first << endl;
-	// cout << neigh.size() << endl;
-	// cout << neigh[0].first << endl;
-	// cout << "ahsasjdk\n"; 
 				if(same_face(poly[visible_faces[j]], neigh)){
 					in_visited = true;
 					break;
@@ -517,7 +482,6 @@ int get_neighbour(int i, int ind, vector<vector<pair<float, pair<float, float>>>
 	for(int k = 0; k<poly.size(); k++){
 		if((same_face(poly[k],face) == false) && (get_common_edge(poly[k], temp_face, temp_edge) == true)){
 			neigh = poly[k];
-			//cout << poly[k].size() << endl;
 			return k;
 		}
 	}
