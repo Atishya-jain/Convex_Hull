@@ -1,5 +1,6 @@
 /* 
 References: https://cw.fel.cvut.cz/wiki/_media/misc/projects/oppa_oi_english/courses/ae4m39vg/lectures/05-convexhull-3d.pdf
+
 */
 
 #include <iostream>
@@ -41,7 +42,7 @@ float distance_plane(vector<pair<float, pair<float, float>>> &face, pair<float,p
 	// This was equation of a plane as a(x-x0) + b(y-y0) + c(z-z0) = 0;
 	float dist = abs(a*(pt.first - face[0].first) + b*(pt.second.first - face[0].second.first) + c*(pt.second.second - face[0].second.second));
 	dist = dist/(sqrt(a*a+b*b+c*c));
-	return dist;
+	return abs(dist);
 }
 
 float distance_line(pair<float,pair<float,float>> pt, pair<float,pair<float,float>> pt1, pair<float,pair<float,float>> pt2){
@@ -62,7 +63,7 @@ float distance_line(pair<float,pair<float,float>> pt, pair<float,pair<float,floa
 	float dot = ptx*vx + pty*vy + ptz*vz;
 	// Pythagoras
 	float dist = sqrt(ptmag_sq - dot*dot);
-	return dist;
+	return abs(dist);
 }
 
 void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<float,float>>> &v_out){
@@ -71,8 +72,8 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 	float maxX = v_inp[0].first; int maxXInd = 0;
 	float minY = v_inp[0].second.first; int minYInd = 0;
 	float maxY = v_inp[0].second.first; int maxYInd = 0;
-	float minZ = v_inp[0].second.first; int minZInd = 0;
-	float maxZ = v_inp[0].second.first; int maxZInd = 0;
+	float minZ = v_inp[0].second.second; int minZInd = 0;
+	float maxZ = v_inp[0].second.second; int maxZInd = 0;
 
 	float distX = 0, distY = 0, distZ = 0;
 	for(int i = 0; i<v_inp.size() ; ++i){
@@ -148,16 +149,13 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 	poly.push_back(face2);
 	poly.push_back(face3);
 
-	// chk_list is the global list of points in which I maintain what all points are left to be considered for convex hull
 	// face list is list of points nearest to a face
-	vector<pair<float, pair<float, float>>> chk_list;
-	vector<float> dist_list;
 	vector<vector<pair<float, pair<float, float>>>> face_list;
-	for(int i = 0; i<v_inp.size(); i++){
-		dist_list.push_back(max_lim);
+	for(int i = 0; i<4; i++){
 		vector<pair<float, pair<float, float>>> temp;
 		face_list.push_back(temp);
 	}
+
 	// Notice that this point will always lie inside the convex hull. It will help me decide the points insed the convex polygon at any given time
 	float meanX = (v_inp[minInd].first + v_inp[maxInd].first + v_inp[maxTInd].first + v_inp[maxDInd].first)/4;
 	float meanY = (v_inp[minInd].second.first + v_inp[maxInd].second.first + v_inp[maxTInd].second.first + v_inp[maxDInd].second.first)/4;
@@ -176,14 +174,12 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 		}
 	}
 
-	for(int i = 0; i<v_inp.size(); i++){
-		chk_list.push_back(v_inp[i]);
-	}
-
+	vector<vector<pair<float, pair<float, float>>>> poly_dup = poly;
+	vector<vector<pair<float, pair<float, float>>>> face_list_dup = face_list;
 	// Send this to a recursion
 	for(int i = 0; i<4; i++){
 		if(face_list[i].size() > 0){
-			recurse_poly(poly, chk_list, poly[i], face_list[i], mean_pt);
+			recurse_poly(face_list, poly, poly_dup[i], face_list_dup[i], mean_pt);
 		}
 	}
 
@@ -202,7 +198,7 @@ void qhull(vector<pair<float,pair<float,float>>> &v_inp, vector<pair<float,pair<
 	} 
 }
 
-void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<pair<float, pair<float, float>>> &chk_list, vector<pair<float, pair<float, float>>> &face, vector<pair<float, pair<float, float>>> &face_pts, pair<float, pair<float, float>> &mean_pt){
+void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &face_lis, vector<vector<pair<float, pair<float, float>>>> &poly, vector<pair<float, pair<float, float>>> &face, vector<pair<float, pair<float, float>>> &face_pts, pair<float, pair<float, float>> &mean_pt){
 	// Base case
 	if(face_pts.size() <= 0){
 		return;
@@ -229,6 +225,7 @@ void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<
 			max_ind = i;
 		}
 	}
+
 	vector<int> visible_faces;
 	
 	// This is a vector of edges. Edges are represented as a pair of triplets
@@ -236,15 +233,25 @@ void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<
 	
 	// Fills the horizon edges in horizon and visible faces in visible_faces
 	int val = get_horizon(-1, visible_faces, horizon, face, poly, mean_pt, face_pts[max_ind]);
-
 	sort(visible_faces.begin(), visible_faces.end());
+
 	// Removing visible faces from the poly hedron as they will no longer be a part of convex hull
+	set <pair<float, pair<float, float>>> my_chk_list;
 	for(int i = 0; i<visible_faces.size(); i++){
+		for(int j = 0; j<face_lis[visible_faces[i]].size(); j++){
+			if(!same_point(face_pts[max_ind], face_lis[visible_faces[i]][j])){
+				my_chk_list.insert(face_lis[visible_faces[i]][j]);			
+			}
+		}		
+	}
+	for(int i = 0; i<visible_faces.size(); i++){
+		face_lis[visible_faces[i]].clear();
 		poly[visible_faces[i]].clear();
 	}
 
 	for(int i = poly.size()-1; i>=0; i--){
 		if(poly[i].size() == 0){
+			face_lis.erase(face_lis.begin() + i);
 			poly.erase(poly.begin() + i);	
 		}
 	}
@@ -257,31 +264,28 @@ void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<
 		temp_face.push_back(horizon[i].first);
 		temp_face.push_back(horizon[i].second);
 		temp_face.push_back(face_pts[max_ind]);
+		vector<pair<float, pair<float, float>>> temp;
+		face_lis.push_back(temp);
 		poly.push_back(temp_face);
 		new_poly.push_back(temp_face);
+		
 	}
 
-	// Now we will be distributing all the points w.r.t nearest faces
-	vector<float> dist_list;
-	vector<vector<pair<float, pair<float, float>>>> face_list;
-	for(int i = 0; i<chk_list.size(); i++){
-		dist_list.push_back(max_lim);
-		vector<pair<float, pair<float, float>>> temp;
-		face_list.push_back(temp);
-	}
-
-	for(int j = 0; j<chk_list.size(); j++){
-		for(int i = 0; i<poly.size(); i++){
-			if(opp_side(poly[i], poly[i][0], chk_list[j], mean_pt)){
-				face_list[i].push_back(chk_list[j]);
+	for(int i = 0; i<new_poly.size() ; i++){	
+		set<pair<float, pair<float, float>>>::iterator it1;
+		for(it1 = my_chk_list.begin(); it1!=my_chk_list.end();  ++it1){
+			pair<float, pair<float,float>> te = *it1;
+			if(opp_side(new_poly[i], new_poly[i][0], te, mean_pt)){
+				face_lis[init_size + i].push_back(*it1);
 			}
 		}
 	}
+	vector<vector<pair<float, pair<float, float>>>> face_lis_dup = face_lis;
 
 	// Send this to a recursion
 	for(int i = 0; i<new_poly.size(); i++){
-		if(face_list[init_size + i].size() > 0){
-			recurse_poly(poly, chk_list, new_poly[i], face_list[init_size + i], mean_pt);
+		if(face_lis_dup[init_size + i].size() > 0){
+			recurse_poly(face_lis, poly, new_poly[i], face_lis_dup[init_size + i], mean_pt);
 		}
 	}	
 }
@@ -373,7 +377,7 @@ bool same_face(vector<pair<float, pair<float, float>>>& poly, vector<pair<float,
 }
 
 int get_horizon(int ind, vector <int> &visible_faces, vector<pair<pair<float, pair<float, float>>,pair<float, pair<float, float>>>> &horizon, vector<pair<float, pair<float, float>>> &face, vector<vector<pair<float, pair<float, float>>>> &poly, pair<float, pair<float, float>> &mean_pt, pair<float, pair<float, float>> &eye_pt){	
-	if((distance_plane(face, eye_pt) > 0.00000001) && (opp_side(face, face[0], eye_pt, mean_pt) == true)){
+	if((opp_side(face, face[0], eye_pt, mean_pt) == true)){
 		if(ind == -1){
 			for(int i = 0; i<poly.size(); i++){
 				if(same_face(poly[i], face)){
@@ -474,12 +478,14 @@ bool get_common_edge(vector<pair<float, pair<float, float>>> &face, vector<pair<
 }
 
 int get_neighbour(int i, int ind, vector<vector<pair<float, pair<float, float>>>> &poly, vector<pair<float, pair<float, float>>> &face, vector<pair<float, pair<float, float>>> &neigh){
-	pair<pair<float, pair<float, float>>,pair<float, pair<float, float>>> temp_edge;
 	vector<pair<float, pair<float, float>>> temp_face;
 	temp_face.push_back(face[i]);
 	temp_face.push_back(face[(i+1)%3]);
 	temp_face.push_back(make_pair(max_lim, make_pair(max_lim,max_lim)));
 	for(int k = 0; k<poly.size(); k++){
+		pair<pair<float, pair<float, float>>,pair<float, pair<float, float>>> temp_edge;
+		bool a = get_common_edge(poly[k], temp_face, temp_edge);
+		
 		if((same_face(poly[k],face) == false) && (get_common_edge(poly[k], temp_face, temp_edge) == true)){
 			neigh = poly[k];
 			return k;

@@ -74,7 +74,7 @@ bool opp_side(vector<pair<float, pair<float, float>>>& poly, pair<float, pair<fl
  * @param face_list current list of vertices nearest to this face
  * @param mean_pt a special point that always stays inside my partially complete polyhedron
  */
-void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &poly, vector<pair<float, pair<float, float>>> &chk_list, vector<pair<float, pair<float, float>>> &face, vector<pair<float, pair<float, float>>> &face_pts, pair<float, pair<float, float>> &mean_pt);
+void recurse_poly(vector<vector<pair<float, pair<float, float>>>> &face_lis, vector<vector<pair<float, pair<float, float>>>> &poly, vector<pair<float, pair<float, float>>> &face, vector<pair<float, pair<float, float>>> &face_pts, pair<float, pair<float, float>> &mean_pt);
 
 /**
  * Function to find the convex hull using quickhull. The result is stored in v_out vector.
